@@ -1,0 +1,144 @@
+package ${package.Controller};
+
+
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.StringUtils;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.example.authority.annotation.NoAuth;
+import com.example.authority.common.Result;
+import com.example.authority.utils.JwtUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import ${package.Service}.${table.serviceName};
+import ${package.Entity}.${entity};
+
+import java.util.List;
+
+#if(${restControllerStyle})
+import org.springframework.web.bind.annotation.RestController;
+#else
+import org.springframework.stereotype.Controller;
+#end
+#if(${superControllerClassPackage})
+import ${superControllerClassPackage};
+#end
+
+/**
+ * <p>
+ * $!{table.comment} 前端控制器
+ * </p>
+ * entity:  ${entity}
+ * @author ${author}
+ * @since ${date}
+ */
+#if(${restControllerStyle})
+@RestController
+#else
+@Controller
+#end
+@RequestMapping("/${table.entityPath}")
+#if(${kotlin})
+class ${table.controllerName}#if(${superControllerClass}) : ${superControllerClass}()#end
+
+#else
+#if(${superControllerClass})
+public class ${table.controllerName} extends ${superControllerClass} {
+#else
+public class ${table.controllerName} {
+#end
+
+    @Autowired
+    private ${table.serviceName} ${table.entityPath}Service;
+
+
+    /**
+     * 新增/修改
+     * @param ${table.entityPath}
+     * @return
+     */
+    @PostMapping("/save")
+    public Result save(@RequestBody ${entity} ${table.entityPath}){
+        boolean b = ${table.entityPath}Service.saveOrUpdate(${table.entityPath});
+        if(b){
+            return Result.success();
+        }else{
+            return Result.error();
+        }
+    }
+
+    /**
+     * 根据id删除
+     * @param id
+     * @return
+     */
+    @DeleteMapping("/deleteById/{id}")
+    public Result deleteById(@PathVariable Integer id){
+        boolean b = ${table.entityPath}Service.removeById(id);
+        if(b){
+            return Result.success();
+        }else{
+            return Result.error();
+        }
+    }
+
+    /**
+     * 根据id批量删除
+     * @param idList
+     * @return
+     */
+    @PostMapping("/deleteBatch")
+    public Result deleteBatch(@RequestBody List<Integer> idList){
+        boolean b = ${table.entityPath}Service.removeByIds(idList);
+        if(b){
+            return Result.success();
+        }else{
+            return Result.error();
+        }
+    }
+    /**
+     * 查询全部数据
+     * @return
+     */
+    @GetMapping("/findAll")
+    public Result findAll(){
+        return Result.success(${table.entityPath}Service.list());
+    }
+    /**
+     * 根据id查询信息
+     * @return
+     */
+    @GetMapping("/findById/{id}")
+    public Result findById(@PathVariable("id") Integer id){
+        ${entity} ${table.entityPath} = ${table.entityPath}Service.getById(id);
+        if(null != ${table.entityPath}){
+            return Result.success(${table.entityPath});
+        }else{
+            return Result.error("500","找不到文章信息");
+        }
+    }
+
+    /**
+     * 分页查询
+     * @param pageNum：页码
+     * @param pageSize：每页条数
+     * @param name：名称
+     * @return
+     */
+    @GetMapping("/findPage")
+    @NoAuth
+    public Result findPage(@RequestParam Integer pageNum,
+                           @RequestParam Integer pageSize,
+                           @RequestParam(name = "name",defaultValue = "") String name){
+            Page<${entity}> page = new Page<>(pageNum,pageSize);
+            QueryWrapper<${entity}> queryWrapper = new QueryWrapper<>();
+            if(StringUtils.isNotBlank(name)){
+                queryWrapper.like("name",name);
+            }
+            Page<${entity}> ${table.entityPath}Page = ${table.entityPath}Service.page(page, queryWrapper);
+            return Result.success(${table.entityPath}Page);
+    }
+
+}
+
+#end
